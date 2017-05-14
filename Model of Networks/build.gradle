@@ -1,0 +1,49 @@
+import proguard.gradle.ProGuardTask
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        flatDir dirs: 'lib'
+    }
+    dependencies {
+        classpath ':proguard:'
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/java'
+        }
+    }
+}
+
+dependencies {
+    compile 'org.jgrapht:jgrapht-core:0.9.0'
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "pl.andrzejressel.sieci.lista2.Main"
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+
+task proguard(type: ProGuardTask) {
+    injars(project.jar.archivePath.getPath())
+    outjars(libsDir.path + File.separator + project.name + '_proguarded.jar')
+    configuration 'proguard.pro'
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+task buildComplete(dependsOn: [jar, proguard])
